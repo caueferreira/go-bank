@@ -12,3 +12,8 @@ var (
 	Transfers      = make(map[string]models.Transfer)
 	TransfersMutex = &sync.Mutex{}
 )
+
+var (
+	Transactions      = make(map[string]models.Transaction)
+	TransactionsMutex = &sync.Mutex{}
+)
