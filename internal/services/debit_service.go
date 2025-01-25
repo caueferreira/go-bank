@@ -3,34 +3,25 @@ package services
 import (
 	"errors"
 	"github.com/google/uuid"
-	"goBank/internal/db"
+	"goBank/internal/events"
 	"goBank/internal/models"
+	"goBank/internal/repository"
+	"time"
 )
 
-func CreateDebit(debit models.Debit) (models.Account, error) {
-	debit.ID = uuid.New().String()
-
-	db.AccountsMutex.Lock()
-	account, exists := db.Accounts[debit.AccountId]
-	if !exists {
-		return models.Account{}, errors.New("Account not found")
+func CreateDebit(newDebit models.Transaction) (models.Account, error) {
+	if newDebit.TransactionType != "DEBIT" {
+		return models.Account{}, errors.New("invalid transaction type")
 	}
-	if account.Balance < debit.Amount {
-		return models.Account{}, errors.New("Not enough balance")
+
+	newDebit.ID = uuid.New().String()
+
+	events.TransactionCreateChannel <- newDebit
+
+	select {
+	case debit := <-events.TransactionResponseChannel:
+		return repository.GetAccountById(debit.AccountId)
+	case <-time.After(5 * time.Second):
+		return models.Account{}, errors.New("persistence operation timed out")
 	}
-	account.Balance -= debit.Amount
-	db.Accounts[account.ID] = account
-	db.AccountsMutex.Unlock()
-
-	transaction := models.Transaction{}
-	transaction.ID = debit.ID
-	transaction.Amount = debit.Amount
-	transaction.AccountId = debit.AccountId
-	transaction.Type = "DEBIT"
-
-	db.TransactionsMutex.Lock()
-	db.Transactions[transaction.ID] = transaction
-	db.TransactionsMutex.Unlock()
-
-	return account, nil
 }

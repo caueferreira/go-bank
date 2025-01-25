@@ -14,7 +14,7 @@ func DebitHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var debit models.Debit
+	var debit models.Transaction
 	err := json.NewDecoder(r.Body).Decode(&debit)
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)

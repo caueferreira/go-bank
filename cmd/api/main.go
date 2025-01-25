@@ -8,6 +8,7 @@ import (
 import "goBank/internal/api/handlers"
 
 func main() {
+	StartWorkers()
 	GenerateData()
 	http.HandleFunc("/", handlers.HomeHandler)
 
