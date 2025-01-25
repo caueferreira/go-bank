@@ -11,24 +11,43 @@ func CreateTransfer(transfer models.Transfer) (models.Accounts, error) {
 	transfer.ID = uuid.New().String()
 	transfer.Success = false
 
-	db.AccountsMutex.Lock()
-	toAccount, toExists := db.Accounts[transfer.ToAccount]
-	fromAccount, fromExists := db.Accounts[transfer.FromAccount]
+	newDebit := models.Debit{}
+	newDebit.AccountId = transfer.FromAccount
+	newDebit.Amount = transfer.Amount
 
-	if !toExists || !fromExists {
-		db.AccountsMutex.Unlock()
-		return models.Accounts{}, errors.New("Account not found")
+	_, debitErr := CreateDebit(newDebit)
+
+	newCredit := models.Credit{}
+	newCredit.AccountId = transfer.ToAccount
+	newCredit.Amount = transfer.Amount
+
+	_, creditErr := CreateCredit(newCredit)
+
+	if creditErr != nil {
+		refund := models.Credit{}
+		refund.AccountId = transfer.FromAccount
+		refund.Amount = transfer.Amount
+
+		_, err := CreateCredit(refund)
+		if err != nil {
+			return models.Accounts{}, err
+		}
 	}
 
-	if fromAccount.Balance >= transfer.Amount {
-		toAccount.Balance += transfer.Amount
-		fromAccount.Balance -= transfer.Amount
-		db.Accounts[toAccount.ID] = toAccount
-		db.Accounts[fromAccount.ID] = fromAccount
+	if debitErr != nil && creditErr != nil {
 		transfer.Success = true
 	}
+
+	fromAccount, err := GetAccountById(transfer.FromAccount)
+	if err != nil {
+		return models.Accounts{}, err
+	}
+	toAccount, err := GetAccountById(transfer.ToAccount)
+	if err != nil {
+		return models.Accounts{}, err
+	}
+
 	accounts := models.Accounts{Accounts: []models.Account{toAccount, fromAccount}}
-	db.AccountsMutex.Unlock()
 
 	db.TransfersMutex.Lock()
 	db.Transfers[transfer.ID] = transfer

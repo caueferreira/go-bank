@@ -15,10 +15,22 @@ func CreateDebit(debit models.Debit) (models.Account, error) {
 	if !exists {
 		return models.Account{}, errors.New("Account not found")
 	}
-
+	if account.Balance < debit.Amount {
+		return models.Account{}, errors.New("Not enough balance")
+	}
 	account.Balance -= debit.Amount
 	db.Accounts[account.ID] = account
 	db.AccountsMutex.Unlock()
+
+	transaction := models.Transaction{}
+	transaction.ID = debit.ID
+	transaction.Amount = debit.Amount
+	transaction.AccountId = debit.AccountId
+	transaction.Type = "DEBIT"
+
+	db.TransactionsMutex.Lock()
+	db.Transactions[transaction.ID] = transaction
+	db.TransactionsMutex.Unlock()
 
 	return account, nil
 }

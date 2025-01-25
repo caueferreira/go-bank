@@ -20,5 +20,15 @@ func CreateCredit(credit models.Credit) (models.Account, error) {
 	db.Accounts[account.ID] = account
 	db.AccountsMutex.Unlock()
 
+	transaction := models.Transaction{}
+	transaction.ID = credit.ID
+	transaction.Amount = credit.Amount
+	transaction.AccountId = credit.AccountId
+	transaction.Type = "CREDIT"
+
+	db.TransactionsMutex.Lock()
+	db.Transactions[transaction.ID] = transaction
+	db.TransactionsMutex.Unlock()
+
 	return account, nil
 }
