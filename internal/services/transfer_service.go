@@ -3,7 +3,7 @@ package services
 import (
 	"github.com/google/uuid"
 	"goBank/internal/models"
-	"goBank/internal/repository"
+	"goBank/internal/repository/cassandra"
 	"time"
 )
 
@@ -52,15 +52,15 @@ func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 }
 
 func GetTransferById(id string) (models.Transfer, error) {
-	return repository.GetTransferById(id)
+	return cassandra.GetTransferById(id)
 }
 
 func GetTransfers() models.Transfers {
-	return models.Transfers{Transfers: repository.GetAllTransfers()}
+	return models.Transfers{Transfers: cassandra.GetAllTransfers()}
 }
 
 func saveTransfer(transfer models.Transfer) (models.Transfer, error) {
-	savedTransfer, err := repository.SaveTransfer(transfer)
+	savedTransfer, err := cassandra.SaveTransfer(transfer)
 	if err != nil {
 		return models.Transfer{}, err
 	}

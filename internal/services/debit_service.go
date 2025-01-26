@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"goBank/internal/models"
-	"goBank/internal/repository"
+	"goBank/internal/repository/cassandra"
 	"time"
 )
 
@@ -16,10 +16,10 @@ func CreateDebit(newDebit models.Transaction) (models.Account, error) {
 	newDebit.ID = uuid.New().String()
 	newDebit.CreatedAt = time.Now().Unix()
 
-	account, err := repository.DebitAccount(newDebit)
+	account, err := cassandra.DebitAccount(newDebit)
 	if err != nil {
 		return models.Account{}, err
 	}
-	repository.SaveTransaction(newDebit)
+	cassandra.SaveTransaction(newDebit)
 	return account, nil
 }

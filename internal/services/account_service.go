@@ -3,7 +3,7 @@ package services
 import (
 	"github.com/google/uuid"
 	"goBank/internal/models"
-	"goBank/internal/repository"
+	"goBank/internal/repository/cassandra"
 	"math/rand"
 	"strconv"
 	"time"
@@ -15,7 +15,7 @@ func CreateAccount(account models.Account) (models.Account, error) {
 	account.SortCode = "001942"
 	account.CreatedAt = time.Now().Unix()
 
-	createdAccount, err := repository.SaveAccount(account)
+	createdAccount, err := cassandra.SaveAccount(account)
 	if err != nil {
 		return models.Account{}, err
 	}
@@ -23,9 +23,9 @@ func CreateAccount(account models.Account) (models.Account, error) {
 }
 
 func GetAccountById(id string) (models.Account, error) {
-	return repository.GetAccountById(id)
+	return cassandra.GetAccountById(id)
 }
 
 func GetAccounts() models.Accounts {
-	return models.Accounts{Accounts: repository.GetAllAccounts()}
+	return models.Accounts{Accounts: cassandra.GetAllAccounts()}
 }

@@ -2,13 +2,13 @@ package services
 
 import (
 	"goBank/internal/models"
-	"goBank/internal/repository"
+	"goBank/internal/repository/cassandra"
 )
 
 func GetTransactions() models.Transactions {
-	return models.Transactions{Transactions: repository.GetAllTransactions()}
+	return models.Transactions{Transactions: cassandra.GetAllTransactions()}
 }
 
 func CreateTransaction(transaction models.Transaction) (models.Transaction, error) {
-	return repository.SaveTransaction(transaction)
+	return cassandra.SaveTransaction(transaction)
 }

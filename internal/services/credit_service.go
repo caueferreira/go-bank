@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"goBank/internal/models"
-	"goBank/internal/repository"
+	"goBank/internal/repository/cassandra"
 	"time"
 )
 
@@ -16,10 +16,10 @@ func CreateCredit(newCredit models.Transaction) (models.Account, error) {
 	newCredit.ID = uuid.New().String()
 	newCredit.CreatedAt = time.Now().Unix()
 
-	account, err := repository.CreditAccount(newCredit)
+	account, err := cassandra.CreditAccount(newCredit)
 	if err != nil {
 		return models.Account{}, err
 	}
-	repository.SaveTransaction(newCredit)
+	cassandra.SaveTransaction(newCredit)
 	return account, nil
 }

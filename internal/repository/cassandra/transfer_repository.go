@@ -1,4 +1,4 @@
-package repository
+package cassandra
 
 import (
 	"goBank/internal/db"
