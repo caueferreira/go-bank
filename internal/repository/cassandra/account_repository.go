@@ -11,7 +11,7 @@ func SaveAccount(account models.Account) (models.Account, error) {
 	session := db.ConnectCassandra()
 	defer session.Close()
 
-	err := session.Query("INSERT INTO accounts (id, name, email, sort_code, account_number, balance, created_at) VALUES (?,?,?,?,?,?, ?)",
+	err := session.Query("INSERT INTO accounts (id, name, email, sort_code, account_number, balance, created_at) VALUES (?,?,?,?,?,?,?)",
 		account.ID, account.Name, account.Email, account.SortCode, account.Number, account.Balance, account.CreatedAt).Exec()
 	if err != nil {
 		log.Fatal(err)
