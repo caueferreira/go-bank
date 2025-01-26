@@ -25,9 +25,9 @@ func initializeDatabase(session *gocql.Session) error {
 		`DROP TABLE IF EXISTS go_bank.accounts`,
 		`DROP TABLE IF EXISTS go_bank.transactions`,
 		`DROP TABLE IF EXISTS go_bank.transfers`,
-		`CREATE TABLE IF NOT EXISTS go_bank.accounts (id UUID PRIMARY KEY, name TEXT, email TEXT, sort_code TEXT, account_number TEXT, balance INT);`,
-		`CREATE TABLE IF NOT EXISTS go_bank.transactions (id UUID PRIMARY KEY, account_id TEXT, transaction_tyoe TEXT, amount INT);`,
-		`CREATE TABLE IF NOT EXISTS go_bank.transfers (id UUID PRIMARY KEY, to_account UUID, from_account UUID, amount INT, success BOOLEAN);`,
+		`CREATE TABLE IF NOT EXISTS go_bank.accounts (id UUID PRIMARY KEY, name TEXT, email TEXT, sort_code TEXT, account_number TEXT, balance INT, created_at BIGINT);`,
+		`CREATE TABLE IF NOT EXISTS go_bank.transactions (id UUID PRIMARY KEY, account_id TEXT, transaction_tyoe TEXT, amount INT, created_at BIGINT);`,
+		`CREATE TABLE IF NOT EXISTS go_bank.transfers (id UUID PRIMARY KEY, to_account UUID, from_account UUID, amount INT, success BOOLEAN, created_at BIGINT);`,
 	}
 
 	for _, cmd := range cqlCommands {

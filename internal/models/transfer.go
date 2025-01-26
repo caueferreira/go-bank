@@ -6,6 +6,7 @@ type Transfer struct {
 	FromAccount string `json:"fromAccount"`
 	Amount      int    `json:"amount"`
 	Success     bool   `json:"success"`
+	CreatedAt   int64  `json:"createdAt"`
 }
 
 type Transfers struct {

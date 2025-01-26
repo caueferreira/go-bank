@@ -1,36 +1,70 @@
 package repository
 
 import (
-	"errors"
 	"goBank/internal/db"
 	"goBank/internal/models"
+	"log"
 )
 
 func SaveTransaction(transaction models.Transaction) (models.Transaction, error) {
-	db.TransactionsMutex.Lock()
-	db.Transactions[transaction.ID] = transaction
-	db.TransactionsMutex.Unlock()
+	session := db.ConnectCassandra()
+	defer session.Close()
+
+	err := session.Query("INSERT INTO transactions (id, account_id, transaction_tyoe, amount, created_at) VALUES (?,?,?,?,?)",
+		transaction.ID, transaction.AccountId, transaction.TransactionType, transaction.Amount, transaction.CreatedAt).Exec()
+	if err != nil {
+		log.Fatal(err)
+		return models.Transaction{}, err
+	}
 	return transaction, nil
 }
 
-func FindTransactionById(id string) (models.Transaction, error) {
-	db.TransactionsMutex.Lock()
-	transaction, exists := db.Transactions[id]
-	db.TransactionsMutex.Unlock()
+func FindTransactionById(transactionId string) (models.Transaction, error) {
+	session := db.ConnectCassandra()
+	defer session.Close()
 
-	if !exists {
-		return models.Transaction{}, errors.New("transaction does not exist")
+	var transaction models.Transaction
+
+	err := session.Query("SELECT * FROM accounts WHERE id = ?", transactionId).Scan(
+		&transaction.ID,
+		&transaction.AccountId,
+		&transaction.TransactionType,
+		&transaction.Amount,
+		&transaction.CreatedAt)
+
+	if err != nil {
+		log.Fatal(err)
+		return models.Transaction{}, err
 	}
 
 	return transaction, nil
 }
 
 func GetAllTransactions() []models.Transaction {
-	db.TransactionsMutex.Lock()
+	session := db.ConnectCassandra()
+	defer session.Close()
+
 	var transactions []models.Transaction
-	for _, transaction := range db.Transactions {
+	iter := session.Query("SELECT * FROM transactions").Iter()
+
+	var id, accountId, transactionType string
+	var amount int
+	var createdAt int64
+
+	for iter.Scan(&id, &accountId, &amount, &createdAt, &transactionType) {
+		transaction := models.Transaction{
+			ID:              id,
+			AccountId:       accountId,
+			Amount:          amount,
+			CreatedAt:       createdAt,
+			TransactionType: transactionType,
+		}
 		transactions = append(transactions, transaction)
 	}
-	db.TransactionsMutex.Unlock()
+
+	if err := iter.Close(); err != nil {
+		log.Fatal(err)
+	}
+
 	return transactions
 }

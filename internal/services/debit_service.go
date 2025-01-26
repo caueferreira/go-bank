@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"goBank/internal/models"
 	"goBank/internal/repository"
+	"time"
 )
 
 func CreateDebit(newDebit models.Transaction) (models.Account, error) {
@@ -13,6 +14,7 @@ func CreateDebit(newDebit models.Transaction) (models.Account, error) {
 	}
 
 	newDebit.ID = uuid.New().String()
+	newDebit.CreatedAt = time.Now().Unix()
 
 	account, err := repository.DebitAccount(newDebit)
 	if err != nil {

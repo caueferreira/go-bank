@@ -31,6 +31,5 @@ func GenerateData() {
 		transfer.FromAccount = fromAccount.ID
 
 		services.CreateTransfer(transfer)
-
 	}
 }

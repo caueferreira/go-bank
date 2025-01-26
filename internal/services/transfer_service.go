@@ -4,11 +4,13 @@ import (
 	"github.com/google/uuid"
 	"goBank/internal/models"
 	"goBank/internal/repository"
+	"time"
 )
 
 func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 	transfer.ID = uuid.New().String()
 	transfer.Success = false
+	transfer.CreatedAt = time.Now().Unix()
 
 	newDebit, newCredit, err := createTransactions(transfer)
 	if err != nil {
@@ -21,8 +23,6 @@ func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 		saveTransfer(transfer)
 		return models.Transfer{}, debitErr
 	}
-
-	repository.SaveTransaction(newDebit)
 
 	_, creditErr := CreateCredit(newCredit)
 

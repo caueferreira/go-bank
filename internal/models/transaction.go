@@ -23,6 +23,7 @@ type Transaction struct {
 	AccountId       string `json:"accountId"`
 	Amount          int    `json:"amount"`
 	TransactionType string `json:"type"`
+	CreatedAt       int64  `json:"createdAt"`
 }
 
 type Transactions struct {

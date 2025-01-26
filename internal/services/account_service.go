@@ -6,12 +6,14 @@ import (
 	"goBank/internal/repository"
 	"math/rand"
 	"strconv"
+	"time"
 )
 
 func CreateAccount(account models.Account) (models.Account, error) {
 	account.ID = uuid.New().String()
 	account.Number = strconv.Itoa(10000000 + rand.Intn(99999999-10000000))
 	account.SortCode = "001942"
+	account.CreatedAt = time.Now().Unix()
 
 	createdAccount, err := repository.SaveAccount(account)
 	if err != nil {
