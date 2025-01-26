@@ -2,17 +2,33 @@ package events
 
 import (
 	"goBank/internal/models"
-	"goBank/internal/repository"
+	"goBank/internal/services"
 )
 
 var (
-	AccountCreateChannel   = make(chan models.Account)
-	AccountResponseChannel = make(chan models.Account)
+	GetAllAccountsChannel         = make(chan struct{})
+	FindAccountChannel            = make(chan string)
+	AccountCreateChannel          = make(chan models.Account)
+	AccountResponseChannel        = make(chan models.Account)
+	GetAllAccountsResponseChannel = make(chan models.Accounts)
 )
 
 func PersistAccountWorker() {
 	for account := range AccountCreateChannel {
-		createdAccount, _ := repository.SaveAccount(account)
+		createdAccount, _ := services.CreateAccount(account)
 		AccountResponseChannel <- createdAccount
+	}
+}
+
+func FindAccountWorker() {
+	for id := range FindAccountChannel {
+		accountFound, _ := services.GetAccountById(id)
+		AccountResponseChannel <- accountFound
+	}
+}
+
+func GetAllAccountsWorker() {
+	for range GetAllAccountsChannel {
+		GetAllAccountsResponseChannel <- services.GetAccounts()
 	}
 }

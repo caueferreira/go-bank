@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"goBank/internal/services"
+	"goBank/internal/events"
 	"net/http"
+	"time"
 )
 
 import "goBank/internal/models"
@@ -14,19 +15,27 @@ func DebitHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var debit models.Transaction
-	err := json.NewDecoder(r.Body).Decode(&debit)
+	var newDebit models.Transaction
+	err := json.NewDecoder(r.Body).Decode(&newDebit)
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
 
-	response, err := services.CreateDebit(debit)
-	if err != nil {
-		return
-	}
+	events.TransactionCreateChannel <- newDebit
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	select {
+	case account := <-events.TransactionResponseChannel:
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(account)
+	case <-time.After(5 * time.Second):
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusGatewayTimeout)
+
+		response := map[string]string{"error": "persistence operation timed out"}
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+		}
+	}
 }

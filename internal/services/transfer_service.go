@@ -1,29 +1,28 @@
 package services
 
 import (
-	"errors"
 	"github.com/google/uuid"
-	"goBank/internal/events"
 	"goBank/internal/models"
 	"goBank/internal/repository"
-	"time"
 )
 
-func CreateTransfer(transfer models.Transfer) (models.Accounts, error) {
+func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 	transfer.ID = uuid.New().String()
 	transfer.Success = false
 
 	newDebit, newCredit, err := createTransactions(transfer)
 	if err != nil {
 		saveTransfer(transfer)
-		return models.Accounts{}, err
+		return models.Transfer{}, err
 	}
 
 	_, debitErr := CreateDebit(newDebit)
 	if debitErr != nil {
 		saveTransfer(transfer)
-		return models.Accounts{}, debitErr
+		return models.Transfer{}, debitErr
 	}
+
+	repository.SaveTransaction(newDebit)
 
 	_, creditErr := CreateCredit(newCredit)
 
@@ -36,7 +35,7 @@ func CreateTransfer(transfer models.Transfer) (models.Accounts, error) {
 		_, err := CreateCredit(refund)
 		if err != nil {
 			saveTransfer(transfer)
-			return models.Accounts{}, err
+			return models.Transfer{}, err
 		}
 	}
 
@@ -44,20 +43,12 @@ func CreateTransfer(transfer models.Transfer) (models.Accounts, error) {
 		transfer.Success = true
 	}
 
-	saveTransfer(transfer)
-
-	fromAccount, err := GetAccountById(transfer.FromAccount)
+	savedTransfer, err := saveTransfer(transfer)
 	if err != nil {
-		return models.Accounts{}, err
-	}
-	toAccount, err := GetAccountById(transfer.ToAccount)
-	if err != nil {
-		return models.Accounts{}, err
+		return models.Transfer{}, err
 	}
 
-	accounts := models.Accounts{Accounts: []models.Account{toAccount, fromAccount}}
-
-	return accounts, nil
+	return savedTransfer, nil
 }
 
 func GetTransferById(id string) (models.Transfer, error) {
@@ -69,14 +60,12 @@ func GetTransfers() models.Transfers {
 }
 
 func saveTransfer(transfer models.Transfer) (models.Transfer, error) {
-	events.TransferCreateChannel <- transfer
-
-	select {
-	case transfer := <-events.TransferResponseChannel:
-		return transfer, nil
-	case <-time.After(5 * time.Second):
-		return models.Transfer{}, errors.New("persistence operation timed out")
+	savedTransfer, err := repository.SaveTransfer(transfer)
+	if err != nil {
+		return models.Transfer{}, err
 	}
+
+	return savedTransfer, nil
 }
 
 func createTransactions(transfer models.Transfer) (models.Transaction, models.Transaction, error) {
