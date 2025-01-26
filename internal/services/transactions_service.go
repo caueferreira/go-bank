@@ -1,18 +1,14 @@
 package services
 
 import (
-	"goBank/internal/db"
 	"goBank/internal/models"
+	"goBank/internal/repository"
 )
 
 func GetTransactions() models.Transactions {
-	db.TransactionsMutex.Lock()
-	var transactions []models.Transaction
-	for _, account := range db.Transactions {
-		transactions = append(transactions, account)
-	}
-	response := models.Transactions{}
-	response.Transactions = transactions
-	db.TransactionsMutex.Unlock()
-	return response
+	return models.Transactions{Transactions: repository.GetAllTransactions()}
+}
+
+func CreateTransaction(transaction models.Transaction) (models.Transaction, error) {
+	return repository.SaveTransaction(transaction)
 }

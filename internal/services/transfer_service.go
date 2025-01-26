@@ -1,82 +1,83 @@
 package services
 
 import (
-	"errors"
 	"github.com/google/uuid"
-	"goBank/internal/db"
 	"goBank/internal/models"
+	"goBank/internal/repository"
 )
 
-func CreateTransfer(transfer models.Transfer) (models.Accounts, error) {
+func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 	transfer.ID = uuid.New().String()
 	transfer.Success = false
 
-	newDebit := models.Debit{}
-	newDebit.AccountId = transfer.FromAccount
-	newDebit.Amount = transfer.Amount
+	newDebit, newCredit, err := createTransactions(transfer)
+	if err != nil {
+		saveTransfer(transfer)
+		return models.Transfer{}, err
+	}
 
 	_, debitErr := CreateDebit(newDebit)
+	if debitErr != nil {
+		saveTransfer(transfer)
+		return models.Transfer{}, debitErr
+	}
 
-	newCredit := models.Credit{}
-	newCredit.AccountId = transfer.ToAccount
-	newCredit.Amount = transfer.Amount
+	repository.SaveTransaction(newDebit)
 
 	_, creditErr := CreateCredit(newCredit)
 
 	if creditErr != nil {
-		refund := models.Credit{}
+		refund := models.Transaction{}
 		refund.AccountId = transfer.FromAccount
 		refund.Amount = transfer.Amount
+		refund.TransactionType = "CREDIT"
 
 		_, err := CreateCredit(refund)
 		if err != nil {
-			return models.Accounts{}, err
+			saveTransfer(transfer)
+			return models.Transfer{}, err
 		}
 	}
 
-	if debitErr != nil && creditErr != nil {
+	if debitErr == nil && creditErr == nil {
 		transfer.Success = true
 	}
 
-	fromAccount, err := GetAccountById(transfer.FromAccount)
+	savedTransfer, err := saveTransfer(transfer)
 	if err != nil {
-		return models.Accounts{}, err
-	}
-	toAccount, err := GetAccountById(transfer.ToAccount)
-	if err != nil {
-		return models.Accounts{}, err
+		return models.Transfer{}, err
 	}
 
-	accounts := models.Accounts{Accounts: []models.Account{toAccount, fromAccount}}
-
-	db.TransfersMutex.Lock()
-	db.Transfers[transfer.ID] = transfer
-	db.TransfersMutex.Unlock()
-
-	return accounts, nil
+	return savedTransfer, nil
 }
 
 func GetTransferById(id string) (models.Transfer, error) {
-	db.TransfersMutex.Lock()
-	transfer, exists := db.Transfers[id]
-	db.TransfersMutex.Unlock()
-
-	if !exists {
-		return models.Transfer{}, errors.New("Transfer does not exist")
-	}
-
-	return transfer, nil
+	return repository.GetTransferById(id)
 }
 
 func GetTransfers() models.Transfers {
-	db.TransfersMutex.Lock()
-	var transferList []models.Transfer
-	for _, transfer := range db.Transfers {
-		transferList = append(transferList, transfer)
-	}
-	transfers := models.Transfers{}
-	transfers.Transfers = transferList
-	db.TransfersMutex.Unlock()
+	return models.Transfers{Transfers: repository.GetAllTransfers()}
+}
 
-	return transfers
+func saveTransfer(transfer models.Transfer) (models.Transfer, error) {
+	savedTransfer, err := repository.SaveTransfer(transfer)
+	if err != nil {
+		return models.Transfer{}, err
+	}
+
+	return savedTransfer, nil
+}
+
+func createTransactions(transfer models.Transfer) (models.Transaction, models.Transaction, error) {
+	debit := models.Transaction{}
+	debit.AccountId = transfer.FromAccount
+	debit.Amount = transfer.Amount
+	debit.TransactionType = "DEBIT"
+
+	credit := models.Transaction{}
+	credit.AccountId = transfer.ToAccount
+	credit.Amount = transfer.Amount
+	credit.TransactionType = "CREDIT"
+
+	return debit, credit, nil
 }
