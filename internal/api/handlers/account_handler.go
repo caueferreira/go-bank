@@ -12,7 +12,7 @@ import "goBank/internal/models"
 
 func AccountsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		var newAccount models.Account
+		var newAccount models.CreateAccount
 		err := json.NewDecoder(r.Body).Decode(&newAccount)
 		if err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)

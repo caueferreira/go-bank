@@ -8,7 +8,7 @@ import (
 var (
 	GetAllAccountsChannel         = make(chan struct{})
 	FindAccountChannel            = make(chan string)
-	AccountCreateChannel          = make(chan models.Account)
+	AccountCreateChannel          = make(chan models.CreateAccount)
 	AccountResponseChannel        = make(chan models.Account)
 	GetAllAccountsResponseChannel = make(chan models.Accounts)
 )

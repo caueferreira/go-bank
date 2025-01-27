@@ -15,7 +15,7 @@ func CreditHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newCredit models.Transaction
+	var newCredit models.CreateTransaction
 	err := json.NewDecoder(r.Body).Decode(&newCredit)
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)

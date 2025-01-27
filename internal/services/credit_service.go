@@ -4,20 +4,23 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"goBank/internal/models"
-	"goBank/internal/repository"
+	"goBank/internal/repository/cassandra"
+	"time"
 )
 
-func CreateCredit(newCredit models.Transaction) (models.Account, error) {
-	if newCredit.TransactionType != "DEBIT" {
-		return models.Account{}, errors.New("invalid transaction type")
+func CreateCredit(newCredit models.CreateTransaction) (models.Transaction, error) {
+	if newCredit.TransactionType != "CREDIT" {
+		return models.Transaction{}, errors.New("invalid transaction type")
 	}
 
-	newCredit.ID = uuid.New().String()
+	credit := models.Transaction{AccountId: newCredit.AccountId, Amount: newCredit.Amount}
+	credit.ID = uuid.New().String()
+	credit.CreatedAt = time.Now().Unix()
 
-	account, err := repository.CreditAccount(newCredit)
+	_, err := cassandra.CreditAccount(credit)
 	if err != nil {
-		return models.Account{}, err
+		return models.Transaction{}, err
 	}
-	repository.SaveTransaction(newCredit)
-	return account, nil
+
+	return cassandra.SaveTransaction(credit)
 }

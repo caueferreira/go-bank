@@ -3,12 +3,14 @@ package services
 import (
 	"github.com/google/uuid"
 	"goBank/internal/models"
-	"goBank/internal/repository"
+	"goBank/internal/repository/cassandra"
+	"time"
 )
 
 func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 	transfer.ID = uuid.New().String()
 	transfer.Success = false
+	transfer.CreatedAt = time.Now().Unix()
 
 	newDebit, newCredit, err := createTransactions(transfer)
 	if err != nil {
@@ -22,12 +24,10 @@ func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 		return models.Transfer{}, debitErr
 	}
 
-	repository.SaveTransaction(newDebit)
-
 	_, creditErr := CreateCredit(newCredit)
 
 	if creditErr != nil {
-		refund := models.Transaction{}
+		refund := models.CreateTransaction{}
 		refund.AccountId = transfer.FromAccount
 		refund.Amount = transfer.Amount
 		refund.TransactionType = "CREDIT"
@@ -52,15 +52,15 @@ func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 }
 
 func GetTransferById(id string) (models.Transfer, error) {
-	return repository.GetTransferById(id)
+	return cassandra.GetTransferById(id)
 }
 
 func GetTransfers() models.Transfers {
-	return models.Transfers{Transfers: repository.GetAllTransfers()}
+	return models.Transfers{Transfers: cassandra.GetAllTransfers()}
 }
 
 func saveTransfer(transfer models.Transfer) (models.Transfer, error) {
-	savedTransfer, err := repository.SaveTransfer(transfer)
+	savedTransfer, err := cassandra.SaveTransfer(transfer)
 	if err != nil {
 		return models.Transfer{}, err
 	}
@@ -68,13 +68,13 @@ func saveTransfer(transfer models.Transfer) (models.Transfer, error) {
 	return savedTransfer, nil
 }
 
-func createTransactions(transfer models.Transfer) (models.Transaction, models.Transaction, error) {
-	debit := models.Transaction{}
+func createTransactions(transfer models.Transfer) (models.CreateTransaction, models.CreateTransaction, error) {
+	debit := models.CreateTransaction{}
 	debit.AccountId = transfer.FromAccount
 	debit.Amount = transfer.Amount
 	debit.TransactionType = "DEBIT"
 
-	credit := models.Transaction{}
+	credit := models.CreateTransaction{}
 	credit.AccountId = transfer.ToAccount
 	credit.Amount = transfer.Amount
 	credit.TransactionType = "CREDIT"
