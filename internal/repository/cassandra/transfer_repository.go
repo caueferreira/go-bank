@@ -7,9 +7,9 @@ import (
 )
 
 func SaveTransfer(transfer models.Transfer) (models.Transfer, error) {
-	db.ConnectCassandra()
+	//db.ConnectCassandra()
 
-	err := db.Session.Query("INSERT INTO transfers (id, from_account, to_account, amount, success, created_at) VALUES (?,?,?,?,?,?)",
+	err := db.GetSession().Query("INSERT INTO transfers (id, from_account, to_account, amount, success, created_at) VALUES (?,?,?,?,?,?)",
 		transfer.ID, transfer.FromAccount, transfer.ToAccount, transfer.Amount, transfer.Success, transfer.CreatedAt).Exec()
 	if err != nil {
 		log.Fatal(err)
@@ -19,11 +19,11 @@ func SaveTransfer(transfer models.Transfer) (models.Transfer, error) {
 }
 
 func GetTransferById(transferId string) (models.Transfer, error) {
-	db.ConnectCassandra()
+	//db.ConnectCassandra()
 
 	var transfer models.Transfer
 
-	err := db.Session.Query("SELECT * FROM transfers WHERE id = ?", transferId).Scan(
+	err := db.GetSession().Query("SELECT * FROM transfers WHERE id = ?", transferId).Scan(
 		transfer.ID,
 		transfer.FromAccount,
 		transfer.ToAccount,
@@ -40,10 +40,10 @@ func GetTransferById(transferId string) (models.Transfer, error) {
 }
 
 func GetAllTransfers() []models.Transfer {
-	db.ConnectCassandra()
+	//db.ConnectCassandra()
 
 	var transfers []models.Transfer
-	iter := db.Session.Query("SELECT * FROM transfers").Iter()
+	iter := db.GetSession().Query("SELECT * FROM transfers").Iter()
 
 	var id, fromAccount, toAccount string
 	var amount int

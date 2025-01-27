@@ -13,10 +13,10 @@ func HandleTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events.GetAllTransactionsChannel <- struct{}{}
+	events.GetAllTransactionsRoutine <- struct{}{}
 
 	select {
-	case transactions := <-events.GetAllTransactionsResponseChannel:
+	case transactions := <-events.GetAllTransactionsResponseRoutine:
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(transactions)
 	case <-time.After(5 * time.Second):

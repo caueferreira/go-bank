@@ -19,7 +19,7 @@ func GetTransferById(id string) (models.Transfer, error) {
 	db.TransfersMutex.Unlock()
 
 	if !exists {
-		return models.Transfer{}, errors.New("transfer does not exist")
+		return transfer, errors.New("transfer does not exist")
 	}
 
 	return transfer, nil
