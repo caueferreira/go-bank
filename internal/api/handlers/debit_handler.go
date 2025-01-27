@@ -23,10 +23,10 @@ func DebitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	events.TransactionCreateChannel <- newDebit
+	events.TransactionCreateRoutine <- newDebit
 
 	select {
-	case account := <-events.TransactionResponseChannel:
+	case account := <-events.TransactionResponseRoutine:
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(account)
 	case <-time.After(5 * time.Second):

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"github.com/google/uuid"
 	"goBank/internal/models"
 	"goBank/internal/repository/cassandra"
@@ -11,6 +12,10 @@ func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 	transfer.ID = uuid.New().String()
 	transfer.Success = false
 	transfer.CreatedAt = time.Now().Unix()
+
+	if transfer.ToAccount == transfer.FromAccount {
+		return models.Transfer{}, errors.New("you can't transfer to the same account")
+	}
 
 	newDebit, newCredit, err := createTransactions(transfer)
 	if err != nil {

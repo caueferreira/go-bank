@@ -20,10 +20,10 @@ func AccountsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer r.Body.Close()
 
-		events.AccountCreateChannel <- newAccount
+		events.AccountCreateRoutine <- newAccount
 
 		select {
-		case account := <-events.AccountResponseChannel:
+		case account := <-events.AccountResponseRoutine:
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(account)
 		case <-time.After(5 * time.Second):
@@ -36,10 +36,10 @@ func AccountsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else if r.Method == http.MethodGet {
-		events.GetAllAccountsChannel <- struct{}{}
+		events.GetAllAccountsRoutine <- struct{}{}
 
 		select {
-		case accounts := <-events.GetAllAccountsResponseChannel:
+		case accounts := <-events.GetAllAccountsResponseRoutine:
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(accounts)
 		case <-time.After(5 * time.Second):
@@ -68,9 +68,9 @@ func AccountHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events.FindAccountChannel <- id
+	events.FindAccountRoutine <- id
 	select {
-	case account := <-events.AccountResponseChannel:
+	case account := <-events.AccountResponseRoutine:
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(account)
 	case <-time.After(5 * time.Second):

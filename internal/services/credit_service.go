@@ -16,6 +16,7 @@ func CreateCredit(newCredit models.CreateTransaction) (models.Transaction, error
 	credit := models.Transaction{AccountId: newCredit.AccountId, Amount: newCredit.Amount}
 	credit.ID = uuid.New().String()
 	credit.CreatedAt = time.Now().Unix()
+	credit.TransactionType = newCredit.TransactionType
 
 	_, err := cassandra.CreditAccount(credit)
 	if err != nil {

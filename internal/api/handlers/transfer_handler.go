@@ -20,11 +20,6 @@ func HandleTransfers(w http.ResponseWriter, r *http.Request) {
 		}
 		defer r.Body.Close()
 
-		if newTransfer.ToAccount == newTransfer.FromAccount {
-			http.Error(w, "You can't transfer to the same account", http.StatusBadRequest)
-			return
-		}
-
 		response, err := services.CreateTransfer(newTransfer)
 		if err != nil {
 			return

@@ -12,10 +12,7 @@ func GenerateData() {
 		newAccount := models.CreateAccount{}
 		newAccount.Name = faker.FirstName() + " " + faker.LastName()
 		newAccount.Email = faker.Email()
-		_, err := services.CreateAccount(newAccount)
-		if err != nil {
-			return
-		}
+		services.CreateAccount(newAccount)
 	}
 
 	accounts := services.GetAccounts()
@@ -33,6 +30,6 @@ func GenerateData() {
 		transfer.ToAccount = toAccount.ID
 		transfer.FromAccount = fromAccount.ID
 
-		services.CreateTransfer(transfer)
+		go services.CreateTransfer(transfer)
 	}
 }

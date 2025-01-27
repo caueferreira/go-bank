@@ -16,6 +16,7 @@ func CreateDebit(newDebit models.CreateTransaction) (models.Transaction, error) 
 	debit := models.Transaction{AccountId: newDebit.AccountId, Amount: newDebit.Amount}
 	debit.ID = uuid.New().String()
 	debit.CreatedAt = time.Now().Unix()
+	debit.TransactionType = newDebit.TransactionType
 
 	_, err := cassandra.DebitAccount(debit)
 	if err != nil {
