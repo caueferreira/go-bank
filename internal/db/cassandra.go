@@ -5,13 +5,20 @@ import (
 	"log"
 )
 
-func ConnectCassandra() *gocql.Session {
+var Session *gocql.Session
+
+func ConnectCassandra() {
 	cluster := gocql.NewCluster("localhost:9042")
 	cluster.Keyspace = "go_bank"
 	cluster.Consistency = gocql.Quorum
-	session, err := cluster.CreateSession()
+	var err error
+	
+	Session, err = cluster.CreateSession()
 	if err != nil {
 		log.Fatal(err)
 	}
-	return session
+}
+
+func CloseCassandraSession() {
+	Session.Close()
 }

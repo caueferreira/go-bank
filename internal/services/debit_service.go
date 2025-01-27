@@ -8,18 +8,19 @@ import (
 	"time"
 )
 
-func CreateDebit(newDebit models.Transaction) (models.Account, error) {
+func CreateDebit(newDebit models.CreateTransaction) (models.Transaction, error) {
 	if newDebit.TransactionType != "DEBIT" {
-		return models.Account{}, errors.New("invalid transaction type")
+		return models.Transaction{}, errors.New("invalid transaction type")
 	}
 
-	newDebit.ID = uuid.New().String()
-	newDebit.CreatedAt = time.Now().Unix()
+	debit := models.Transaction{AccountId: newDebit.AccountId, Amount: newDebit.Amount}
+	debit.ID = uuid.New().String()
+	debit.CreatedAt = time.Now().Unix()
 
-	account, err := cassandra.DebitAccount(newDebit)
+	_, err := cassandra.DebitAccount(debit)
 	if err != nil {
-		return models.Account{}, err
+		return models.Transaction{}, err
 	}
-	cassandra.SaveTransaction(newDebit)
-	return account, nil
+
+	return cassandra.SaveTransaction(debit)
 }

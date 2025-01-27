@@ -18,6 +18,13 @@ func ValidateTransactionType(tt TransactionType) error {
 	}
 }
 
+type CreateTransaction struct {
+	RequestId       string `json:"requestId"`
+	AccountId       string `json:"accountId"`
+	Amount          int    `json:"amount"`
+	TransactionType string `json:"type"`
+}
+
 type Transaction struct {
 	ID              string `json:"id"`
 	AccountId       string `json:"accountId"`

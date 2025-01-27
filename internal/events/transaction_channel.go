@@ -8,27 +8,29 @@ import (
 var (
 	GetAllTransactionsChannel         = make(chan struct{})
 	GetAllTransactionsResponseChannel = make(chan models.Transactions)
-	TransactionCreateChannel          = make(chan models.Transaction)
+	TransactionCreateChannel          = make(chan models.CreateTransaction)
 	TransactionResponseChannel        = make(chan models.Transaction)
 	TransactionErrorChannel           = make(chan error)
 )
 
 func PersistTransactionWorker() {
 	for transaction := range TransactionCreateChannel {
+		var createdTransaction models.Transaction
+		var err error
 		if transaction.TransactionType == "CREDIT" {
-			_, err := services.CreateCredit(transaction)
+			createdTransaction, err = services.CreateCredit(transaction)
 			if err != nil {
 				TransactionErrorChannel <- err
 				return
 			}
 		} else {
-			_, err := services.CreateDebit(transaction)
+			createdTransaction, err = services.CreateDebit(transaction)
 			if err != nil {
 				TransactionErrorChannel <- err
 				return
 			}
 		}
-		createdTransaction, _ := services.CreateTransaction(transaction)
+		//createdTransaction, _ := services.CreateTransaction(transaction)
 		TransactionResponseChannel <- createdTransaction
 	}
 }

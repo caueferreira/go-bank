@@ -8,10 +8,9 @@ import (
 )
 
 func SaveAccount(account models.Account) (models.Account, error) {
-	session := db.ConnectCassandra()
-	defer session.Close()
+	db.ConnectCassandra()
 
-	err := session.Query("INSERT INTO accounts (id, name, email, sort_code, account_number, balance, created_at) VALUES (?,?,?,?,?,?,?)",
+	err := db.Session.Query("INSERT INTO accounts (id, name, email, sort_code, account_number, balance, created_at) VALUES (?,?,?,?,?,?,?)",
 		account.ID, account.Name, account.Email, account.SortCode, account.Number, account.Balance, account.CreatedAt).Exec()
 	if err != nil {
 		log.Fatal(err)
@@ -21,12 +20,11 @@ func SaveAccount(account models.Account) (models.Account, error) {
 }
 
 func GetAccountById(accountId string) (models.Account, error) {
-	session := db.ConnectCassandra()
-	defer session.Close()
+	db.ConnectCassandra()
 
 	var account models.Account
 
-	err := session.Query("SELECT * FROM accounts WHERE id = ?", accountId).Scan(
+	err := db.Session.Query("SELECT * FROM accounts WHERE id = ?", accountId).Scan(
 		&account.ID,
 		&account.Number,
 		&account.Balance,
@@ -44,11 +42,10 @@ func GetAccountById(accountId string) (models.Account, error) {
 }
 
 func CreditAccount(credit models.Transaction) (models.Account, error) {
-	session := db.ConnectCassandra()
-	defer session.Close()
+	db.ConnectCassandra()
 
 	account, _ := GetAccountById(credit.AccountId)
-	err := session.Query("UPDATE accounts SET balance = ? WHERE id = ?", account.Balance+credit.Amount, credit.AccountId).Exec()
+	err := db.Session.Query("UPDATE accounts SET balance = ? WHERE id = ?", account.Balance+credit.Amount, credit.AccountId).Exec()
 	if err != nil {
 		log.Fatal(err)
 		return models.Account{}, err
@@ -57,15 +54,14 @@ func CreditAccount(credit models.Transaction) (models.Account, error) {
 	return GetAccountById(credit.AccountId)
 }
 func DebitAccount(debit models.Transaction) (models.Account, error) {
-	session := db.ConnectCassandra()
-	defer session.Close()
+	db.ConnectCassandra()
 
 	account, _ := GetAccountById(debit.AccountId)
 	if account.Balance < debit.Amount {
 		return models.Account{}, errors.New("not enough balance")
 	}
 
-	err := session.Query("UPDATE accounts SET balance = ? WHERE id = ?", account.Balance-debit.Amount, debit.AccountId).Exec()
+	err := db.Session.Query("UPDATE accounts SET balance = ? WHERE id = ?", account.Balance-debit.Amount, debit.AccountId).Exec()
 	if err != nil {
 		log.Fatal(err)
 		return models.Account{}, err
@@ -74,11 +70,10 @@ func DebitAccount(debit models.Transaction) (models.Account, error) {
 }
 
 func GetAllAccounts() []models.Account {
-	session := db.ConnectCassandra()
-	defer session.Close()
+	db.ConnectCassandra()
 
 	var accounts []models.Account
-	iter := session.Query("SELECT * FROM accounts").Iter()
+	iter := db.Session.Query("SELECT * FROM accounts").Iter()
 
 	var id, name, email, sortCode, accountNumber string
 	var balance int

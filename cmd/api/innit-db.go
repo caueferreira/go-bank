@@ -2,19 +2,15 @@ package main
 
 import (
 	"github.com/gocql/gocql"
+	"goBank/internal/db"
 	"log"
 )
 
 func InnitDatabase() {
-	cluster := gocql.NewCluster("localhost:9042")
-	cluster.Keyspace = "system"
-	session, err := cluster.CreateSession()
-	if err != nil {
-		log.Fatal("Failed to connect to Cassandra:", err)
-	}
-	defer session.Close()
+	db.ConnectCassandra()
+	defer db.CloseCassandraSession()
 
-	if err := initializeDatabase(session); err != nil {
+	if err := initializeDatabase(db.Session); err != nil {
 		log.Fatal("Database initialization failed:", err)
 	}
 }
@@ -31,7 +27,7 @@ func initializeDatabase(session *gocql.Session) error {
 	}
 
 	for _, cmd := range cqlCommands {
-		if err := session.Query(cmd).Exec(); err != nil {
+		if err := db.Session.Query(cmd).Exec(); err != nil {
 			return err
 		}
 	}

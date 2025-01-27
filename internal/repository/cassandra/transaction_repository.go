@@ -7,10 +7,9 @@ import (
 )
 
 func SaveTransaction(transaction models.Transaction) (models.Transaction, error) {
-	session := db.ConnectCassandra()
-	defer session.Close()
+	db.ConnectCassandra()
 
-	err := session.Query("INSERT INTO transactions (id, account_id, transaction_tyoe, amount, created_at) VALUES (?,?,?,?,?)",
+	err := db.Session.Query("INSERT INTO transactions (id, account_id, transaction_tyoe, amount, created_at) VALUES (?,?,?,?,?)",
 		transaction.ID, transaction.AccountId, transaction.TransactionType, transaction.Amount, transaction.CreatedAt).Exec()
 	if err != nil {
 		log.Fatal(err)
@@ -20,12 +19,11 @@ func SaveTransaction(transaction models.Transaction) (models.Transaction, error)
 }
 
 func FindTransactionById(transactionId string) (models.Transaction, error) {
-	session := db.ConnectCassandra()
-	defer session.Close()
+	db.ConnectCassandra()
 
 	var transaction models.Transaction
 
-	err := session.Query("SELECT * FROM accounts WHERE id = ?", transactionId).Scan(
+	err := db.Session.Query("SELECT * FROM accounts WHERE id = ?", transactionId).Scan(
 		&transaction.ID,
 		&transaction.AccountId,
 		&transaction.TransactionType,
@@ -41,11 +39,10 @@ func FindTransactionById(transactionId string) (models.Transaction, error) {
 }
 
 func GetAllTransactions() []models.Transaction {
-	session := db.ConnectCassandra()
-	defer session.Close()
+	db.ConnectCassandra()
 
 	var transactions []models.Transaction
-	iter := session.Query("SELECT * FROM transactions").Iter()
+	iter := db.Session.Query("SELECT * FROM transactions").Iter()
 
 	var id, accountId, transactionType string
 	var amount int

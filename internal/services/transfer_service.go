@@ -27,7 +27,7 @@ func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 	_, creditErr := CreateCredit(newCredit)
 
 	if creditErr != nil {
-		refund := models.Transaction{}
+		refund := models.CreateTransaction{}
 		refund.AccountId = transfer.FromAccount
 		refund.Amount = transfer.Amount
 		refund.TransactionType = "CREDIT"
@@ -68,13 +68,13 @@ func saveTransfer(transfer models.Transfer) (models.Transfer, error) {
 	return savedTransfer, nil
 }
 
-func createTransactions(transfer models.Transfer) (models.Transaction, models.Transaction, error) {
-	debit := models.Transaction{}
+func createTransactions(transfer models.Transfer) (models.CreateTransaction, models.CreateTransaction, error) {
+	debit := models.CreateTransaction{}
 	debit.AccountId = transfer.FromAccount
 	debit.Amount = transfer.Amount
 	debit.TransactionType = "DEBIT"
 
-	credit := models.Transaction{}
+	credit := models.CreateTransaction{}
 	credit.AccountId = transfer.ToAccount
 	credit.Amount = transfer.Amount
 	credit.TransactionType = "CREDIT"

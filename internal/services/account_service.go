@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-func CreateAccount(account models.Account) (models.Account, error) {
+func CreateAccount(newAccount models.CreateAccount) (models.Account, error) {
+	account := models.Account{Name: newAccount.Name, Email: newAccount.Email}
 	account.ID = uuid.New().String()
 	account.Number = strconv.Itoa(10000000 + rand.Intn(99999999-10000000))
 	account.SortCode = "001942"

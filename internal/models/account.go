@@ -1,5 +1,11 @@
 package models
 
+type CreateAccount struct {
+	RequestId string `json:"requestId"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+}
+
 type Account struct {
 	ID        string `json:"id"`
 	SortCode  string `json:"sortCode"`
