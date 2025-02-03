@@ -6,19 +6,6 @@ import (
 	"sync"
 )
 
-//var Session *gocql.Session
-//	func ConnectCassandra() {
-//		cluster := gocql.NewCluster("localhost:9042")
-//		cluster.Keyspace = "go_bank"
-//		cluster.Consistency = gocql.Quorum
-//		var err error
-//
-//		Session, err = cluster.CreateSession()
-//		if err != nil {
-//			log.Fatal(err)
-//		}
-//	}
-
 var session *gocql.Session
 var once sync.Once
 

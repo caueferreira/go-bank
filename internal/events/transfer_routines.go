@@ -1,6 +1,7 @@
 package events
 
 import (
+	kafka2 "goBank/internal/events/kafka"
 	"goBank/internal/models"
 	"goBank/internal/services"
 )
@@ -31,4 +32,12 @@ func GetAllTransferWorker() {
 	for range GetAllTransfersRoutine {
 		GetAllTransfersResponseRoutine <- services.GetTransfers()
 	}
+}
+
+func KafkaTransferCreateWorker(consumer *kafka2.KafkaConsumer[models.Transfer]) {
+	go func() {
+		for msg := range consumer.Messages {
+			go services.CreateTransfer(msg.Message)
+		}
+	}()
 }
