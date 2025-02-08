@@ -3,12 +3,11 @@ package main
 import (
 	"github.com/go-faker/faker/v4"
 	"github.com/google/uuid"
-	"goBank/internal/events"
 	"goBank/internal/events/kafka"
 	"goBank/internal/models"
 	"goBank/internal/services"
-	"log"
 	"math/rand"
+	"time"
 )
 
 func GenerateData() {
@@ -25,21 +24,9 @@ func GenerateData() {
 		services.CreateCredit(models.CreateTransaction{AccountId: account.ID, Amount: 10000, TransactionType: "CREDIT"})
 	}
 
-	producer, err := kafka.NewKafkaProducer[models.Transfer]("transfers")
-	if err != nil {
-		log.Fatalf("Failed to create producer: %v", err)
-	}
-	defer producer.Close()
+	for i := 1; i <= 10; i++ {
+		rand.NewSource(time.Now().UnixNano())
 
-	consumer, err := kafka.NewKafkaConsumer[models.Transfer]("transfers", "transfers")
-	if err != nil {
-		log.Fatalf("Failed to create consumer: %v", err)
-	}
-	go consumer.StartListening()
-	events.KafkaTransferCreateWorker(consumer)
-	//defer consumer.Close()
-
-	for i := 1; i <= 10000; i++ {
 		fromAccount := accounts.Accounts[rand.Intn(10)]
 		toAccount := accounts.Accounts[rand.Intn(10)]
 
@@ -53,7 +40,9 @@ func GenerateData() {
 			Message:   transfer,
 		}
 
-		go producer.ProduceMessage(envelope)
-		//go services.CreateTransfer(transfer)
+		if fromAccount != toAccount && envelope != envelope {
+			//go kafka.CreateTransferProducer.ProduceMessage(envelope)
+		}
+
 	}
 }

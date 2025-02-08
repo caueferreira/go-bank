@@ -24,6 +24,6 @@ func main() {
 
 	http.HandleFunc("/transactions", handlers.HandleTransactions)
 
-	fmt.Println("Server running on port 8080")
-	http.ListenAndServe(":8080", nil)
+	fmt.Println("Server running on port 8081")
+	http.ListenAndServe(":8081", nil)
 }

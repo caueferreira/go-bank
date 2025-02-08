@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"log"
 )
 
 type KafkaProducer[T any] struct {
@@ -49,11 +48,10 @@ func (kp *KafkaProducer[T]) ProduceMessage(envelope KafkaEnvelope[T]) error {
 		return m.TopicPartition.Error
 	}
 
-	log.Printf("Produced message: MessageID=%s, Message=%+v", envelope.MessageID, envelope.Message)
 	return nil
 }
 
 func (kp *KafkaProducer[T]) Close() {
-	kp.Producer.Flush(15000)
+	//kp.Producer.Flush(15000)
 	kp.Producer.Close()
 }
