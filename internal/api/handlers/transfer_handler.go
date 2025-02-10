@@ -31,16 +31,35 @@ func HandleTransfers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		select {
-		case response := <-kafka.CreateTransferResponseConsumer.Messages:
-			if response.MessageID == messageID {
+		//for {
+		//	messages := kafka.CreateTransferResponseConsumer.Messages
+		//	for message := range messages {
+		//		if message.MessageID == messageID {
+		//			w.Header().Set("Content-Type", "application/json")
+		//			json.NewEncoder(w).Encode(message.Message)
+		//
+		//			return
+		//		}
+		//	}
+		//}
+
+		timeout := time.Now().Add(5 * time.Second)
+		kafka.TransfersResponseCache.Lock()
+		defer kafka.TransfersResponseCache.Unlock()
+		for {
+			if response, exists := kafka.TransfersResponseCache.PendingResponses[messageID]; exists {
+				delete(kafka.TransfersResponseCache.PendingResponses, messageID)
+
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(response.Message)
+				json.NewEncoder(w).Encode(response)
 				return
 			}
-		case <-time.After(5 * time.Second):
-			http.Error(w, "Transfer request timed out", http.StatusGatewayTimeout)
-			return
+
+			if time.Now().After(timeout) {
+				http.Error(w, "Transfer request timed out", http.StatusGatewayTimeout)
+				return
+			}
+			kafka.TransfersResponseCache.Cond.Wait()
 		}
 	} else if r.Method == http.MethodGet {
 		response := services.GetTransfers()

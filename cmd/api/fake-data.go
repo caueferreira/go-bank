@@ -40,8 +40,8 @@ func GenerateData() {
 			Message:   transfer,
 		}
 
-		if fromAccount != toAccount && envelope != envelope {
-			//go kafka.CreateTransferProducer.ProduceMessage(envelope)
+		if fromAccount != toAccount {
+			go kafka.CreateTransferProducer.ProduceMessage(envelope)
 		}
 
 	}
