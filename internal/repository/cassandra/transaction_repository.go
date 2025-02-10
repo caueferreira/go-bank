@@ -12,7 +12,7 @@ func SaveTransaction(transaction models.Transaction) (models.Transaction, error)
 	err := db.GetSession().Query("INSERT INTO transactions (id, account_id, transaction_type, amount, created_at) VALUES (?,?,?,?,?)",
 		transaction.ID, transaction.AccountId, transaction.TransactionType, transaction.Amount, transaction.CreatedAt).Exec()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("SaveTransaction:" + err.Error())
 		return models.Transaction{}, err
 	}
 	return transaction, nil
@@ -31,7 +31,7 @@ func FindTransactionById(transactionId string) (models.Transaction, error) {
 		&transaction.CreatedAt)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("FindTransactionById:" + err.Error())
 		return models.Transaction{}, err
 	}
 
@@ -60,7 +60,7 @@ func GetAllTransactions() []models.Transaction {
 	}
 
 	if err := iter.Close(); err != nil {
-		log.Fatal(err)
+		log.Fatal("GetAllTransactions:" + err.Error())
 	}
 
 	return transactions

@@ -13,7 +13,7 @@ func SaveAccount(account models.Account) (models.Account, error) {
 	err := db.GetSession().Query("INSERT INTO accounts (id, name, email, sort_code, account_number, balance, created_at) VALUES (?,?,?,?,?,?,?)",
 		account.ID, account.Name, account.Email, account.SortCode, account.Number, account.Balance, account.CreatedAt).Exec()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("SaveAccount:" + err.Error())
 		return models.Account{}, err
 	}
 	return account, nil
@@ -34,7 +34,7 @@ func GetAccountById(accountId string) (models.Account, error) {
 		&account.SortCode)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("GetAccountById:" + err.Error())
 		return models.Account{}, err
 	}
 
@@ -47,7 +47,7 @@ func CreditAccount(credit models.Transaction) (models.Account, error) {
 	account, _ := GetAccountById(credit.AccountId)
 	err := db.GetSession().Query("UPDATE accounts SET balance = ? WHERE id = ?", account.Balance+credit.Amount, credit.AccountId).Exec()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("CreditAccount:" + err.Error())
 		return models.Account{}, err
 	}
 
@@ -63,7 +63,7 @@ func DebitAccount(debit models.Transaction) (models.Account, error) {
 
 	err := db.GetSession().Query("UPDATE accounts SET balance = ? WHERE id = ?", account.Balance-debit.Amount, debit.AccountId).Exec()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("DebitAccount:" + err.Error())
 		return models.Account{}, err
 	}
 	return GetAccountById(debit.AccountId)
@@ -93,7 +93,7 @@ func GetAllAccounts() []models.Account {
 	}
 
 	if err := iter.Close(); err != nil {
-		log.Fatal(err)
+		log.Fatal("GetAllAccounts:" + err.Error())
 	}
 
 	return accounts

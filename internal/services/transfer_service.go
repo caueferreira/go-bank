@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"goBank/internal/models"
 	"goBank/internal/repository/cassandra"
+	"log"
 	"time"
 )
 
@@ -12,6 +13,8 @@ func CreateTransfer(transfer models.Transfer) (models.Transfer, error) {
 	transfer.ID = uuid.New().String()
 	transfer.Success = false
 	transfer.CreatedAt = time.Now().Unix()
+
+	log.Print("CreateTransfer " + string(transfer.ID))
 
 	if transfer.ToAccount == transfer.FromAccount {
 		return models.Transfer{}, errors.New("you can't transfer to the same account")

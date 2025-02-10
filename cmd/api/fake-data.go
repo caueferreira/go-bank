@@ -2,9 +2,12 @@ package main
 
 import (
 	"github.com/go-faker/faker/v4"
+	"github.com/google/uuid"
+	"goBank/internal/events/kafka"
 	"goBank/internal/models"
 	"goBank/internal/services"
 	"math/rand"
+	"time"
 )
 
 func GenerateData() {
@@ -21,7 +24,9 @@ func GenerateData() {
 		services.CreateCredit(models.CreateTransaction{AccountId: account.ID, Amount: 10000, TransactionType: "CREDIT"})
 	}
 
-	for i := 1; i <= 1000; i++ {
+	for i := 1; i <= 10; i++ {
+		rand.NewSource(time.Now().UnixNano())
+
 		fromAccount := accounts.Accounts[rand.Intn(10)]
 		toAccount := accounts.Accounts[rand.Intn(10)]
 
@@ -30,6 +35,14 @@ func GenerateData() {
 		transfer.ToAccount = toAccount.ID
 		transfer.FromAccount = fromAccount.ID
 
-		go services.CreateTransfer(transfer)
+		envelope := kafka.KafkaEnvelope[models.Transfer]{
+			MessageID: uuid.New().String(),
+			Message:   transfer,
+		}
+
+		if fromAccount != toAccount {
+			go kafka.CreateTransferProducer.ProduceMessage(envelope)
+		}
+
 	}
 }

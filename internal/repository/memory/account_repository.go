@@ -25,7 +25,7 @@ func CreditAccount(credit models.Transaction) (models.Account, error) {
 	db.AccountsMutex.Lock()
 	account, exists := db.Accounts[credit.AccountId]
 	if !exists {
-		return models.Account{}, errors.New("Account not found")
+		return models.Account{}, errors.New("account not found")
 	}
 
 	account.Balance += credit.Amount

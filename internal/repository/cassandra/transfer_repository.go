@@ -12,7 +12,7 @@ func SaveTransfer(transfer models.Transfer) (models.Transfer, error) {
 	err := db.GetSession().Query("INSERT INTO transfers (id, from_account, to_account, amount, success, created_at) VALUES (?,?,?,?,?,?)",
 		transfer.ID, transfer.FromAccount, transfer.ToAccount, transfer.Amount, transfer.Success, transfer.CreatedAt).Exec()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("SaveTransfer:" + err.Error())
 		return models.Transfer{}, err
 	}
 	return transfer, nil
@@ -32,7 +32,7 @@ func GetTransferById(transferId string) (models.Transfer, error) {
 		transfer.CreatedAt)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("GetTransferById:" + err.Error())
 		return models.Transfer{}, err
 	}
 
@@ -63,7 +63,7 @@ func GetAllTransfers() []models.Transfer {
 	}
 
 	if err := iter.Close(); err != nil {
-		log.Fatal(err)
+		log.Fatal("GetAllTransfers:" + err.Error())
 	}
 
 	return transfers

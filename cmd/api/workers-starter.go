@@ -1,13 +1,17 @@
 package main
 
-import "goBank/internal/events"
+import (
+	"goBank/internal/events"
+	"goBank/internal/events/kafka"
+)
 
 func StartWorkers() {
 	go events.PersistAccountWorker()
 	go events.FindAccountWorker()
 	go events.GetAllAccountsWorker()
 
-	go events.PersistTransferWorker()
+	kafka.InitTransferKafkaHandlers()
+	//go events.PersistTransferWorker()
 	go events.FindTransferWorker()
 	go events.GetAllTransferWorker()
 
